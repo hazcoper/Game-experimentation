@@ -13,7 +13,11 @@ Thigns to do:
     change the view mode
     make new maps"""
 
+BLOCK_SIZE = 16 #Dimensions of the blocks
+
+
 walls = [] #List of walls
+walls_pos = [] #List of the position of the walls
 # os.environ["SDL_VIDEO_CENTERED"] = "1" #Center the window
 pygame.init()
 screen = pygame.display.set_mode((640,480)) #setting the resolution
@@ -23,7 +27,7 @@ clock = pygame.time.Clock()
 class Player():
 
     def __init__(self,pos,catch,points):
-        self.rect = pygame.Rect(pos[0], pos[1],16,16)
+        self.rect = pygame.Rect(pos[0], pos[1],BLOCK_SIZE,BLOCK_SIZE)
         self.catch = catch
         self.points = points
         self.speed = 1
@@ -37,13 +41,6 @@ class Player():
 
     def invert_catch(self):
         self.catch = not self.catch
-
-    def move(self,dx, dy):
-        #Movement is done one at a time
-        if dx != 0:
-            self.move_single_axis(dx, 0)
-        if dy != 0:
-            self.move_single_axis(0, dy)
 
     def move_single_axis(self, dx,dy):
 
@@ -61,16 +58,76 @@ class Player():
                 if dy < 0: #Moving up, hit the bottom of the wall
                     self.rect.top = wall.rect.bottom
     
-    def new_move(self):
-        "check if the next block""
+    def move(self, direction):
+        #Check if the next block is a wall, if it is, move one more block and stop
+        #To do this, get current position, see the direction, figure out which one is the next
+        #Check if the next is a wall, move
+        current_pos = (self.rect.x,self.rect.y)
+
+        if direction == "up":
+            next_block = (current_pos[0],current_pos[1]-BLOCK_SIZE)        
+        if direction == "down":
+            next_block = (current_pos[0],current_pos[1]+BLOCK_SIZE)
+        if direction == "left":
+       m     next_block = (current_pos[0]-BLOCK_SIZE,current_pos[1])
+        if direction == "right":
+            next_block = (current_pos[0]+BLOCK_SIZE,current_pos[1])
+
+        if next_block in walls_pos:
+            print("Have reached the wall")
+            return
+        
+        self.move_one_block(next_block)
+        
+        print("No wall yet")
+        print(current_pos, next_block, next_block in walls_pos)
+        print()
+        self.move(direction)
+        
+    def move_one_block(self,new_pos):
+        dist_x = new_pos[0] - self.rect.x  
+        dist_y = new_pos[1] - self.rect.y
+        print("Starting move", dist_x, dist_y)
+
+        if dist_x:
+            print("Moving x")
+            while dist_x:
+                if dist_x > 0:
+                    self.rect.x += 1
+                    dist_x -= 1
+
+                else:
+                    self.rect.x -= 1
+                    dist_x += 1
+
+                print("new_dist = ", dist_x)
+                screen_update()
+                time.sleep(0.001)
+            return
+        else:
+            print("Moving y")
+            while dist_y:
+                if dist_y > 0:
+                    self.rect.y += 1
+                    dist_y -= 1
+
+                else:
+                    self.rect.y -= 1
+                    dist_y += 1
+
+                print("new_dist = ", dist_y)
+                screen_update()
+                time.sleep(0.001)
+            return
 class Wall():
     def __init__(self,pos):
         walls.append(self)
-        self.rect = pygame.Rect(pos[0], pos[1], 16,16)
+        self.rect = pygame.Rect(pos[0], pos[1], BLOCK_SIZE,BLOCK_SIZE)
+        walls_pos.append((pos[0], pos[1]))
 
 class Obj():
     def __init__(self,pos):
-        self.rect = pygame.Rect(pos[0], pos[1], 16, 16)
+        self.rect = pygame.Rect(pos[0], pos[1], BLOCK_SIZE, BLOCK_SIZE)
 
 def parse_map(file_name):
     """Gets a file containing a map, and parses it to a local representation"""
@@ -134,7 +191,7 @@ player1 = Player(p1_pos,True, 0)
 player2 = Player(p2_pos, False, 0)
 maze = parse_map("map.txt")
 
-
+print(walls_pos)
 
 while running:
     clock.tick(120)
@@ -148,21 +205,14 @@ while running:
 
     key = pygame.key.get_pressed()
     if key[pygame.K_a]:
-        player1.move(-player1.speed,0)
+        player1.move("left")
     if key[pygame.K_d]:
-        player1.move(player1.speed, 0)
+        player1.move("right")
     if key[pygame.K_w]:
-        player1.move(0, -player1.speed)
+        player1.move("up")
     if key[pygame.K_s]:
-        player1.move(0, player1.speed)
-    if key[pygame.K_LEFT]:
-        player2.move(-1, 0)
-    if key[pygame.K_RIGHT]:
-        player2.move(1, 0)
-    if key[pygame.K_UP]:
-        player2.move(0, -1)
-    if key[pygame.K_DOWN]:
-        player2.move(0, 1)
+        player1.move("down")
+
 
     #Check collision with obj
     if player1.rect.colliderect(obj1) and not player1.catch:
