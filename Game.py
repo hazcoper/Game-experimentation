@@ -11,7 +11,15 @@ Thigns to do:
         go until the wall
         add acceleration to the movement
     change the view mode
-    make new maps"""
+    make new maps
+
+Basic movement is done, but it is the blocking type
+    Before doing anything need to make a main loop for the game functions
+    Maye make a game class with all of the functions (screenupdate, check movement....)
+        Make the check movement for each of the palyers, basically it receieves a player to check the controls and move it
+        and receive a flag which is to toggle movement allowence. Basically while it is moving the flag is active but it will immediatle return it
+        
+    """
 
 BLOCK_SIZE = 16 #Dimensions of the blocks
 
